@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/vehicle" android:title="@string/activity_vehicle" />
+    <item android:id="@+id/bicycle" android:title="@string/activity_bicycle" />
+    <item android:id="@+id/foot" android:title="@string/activity_foot" />
+    <item android:id="@+id/walking" android:title="@string/activity_walking" />
+    <item android:id="@+id/running" android:title="@string/activity_running" />
+    <item android:id="@+id/still" android:title="@string/activity_still" />
+    <item android:id="@+id/tilting" android:title="@string/activity_tilting" />
+
+    <group android:id="@+id/grp_others">
+        <item android:id="@+id/others" android:title="@string/activity_others" />
+    </group>
+</menu>
