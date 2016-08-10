@@ -7,14 +7,11 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.icu.util.Calendar;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.widget.Toast;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -26,11 +23,20 @@ public class SensorService extends Service implements SensorEventListener {
     private Sensor senMagnetometer;
     DBHelper mydb;
 
+    private float acc_x;
+    private float acc_y;
+    private float acc_z;
+    private int count;
+
     public SensorService() {
     }
 
     @Override
     public void onCreate() {
+        acc_x = 0.0f;
+        acc_y = 0.0f;
+        acc_z = 0.0f;
+        count = 0;
         mydb = new DBHelper(this);
         senSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         senAccelerometer = senSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -73,19 +79,27 @@ public class SensorService extends Service implements SensorEventListener {
         String date = df.format(java.util.Calendar.getInstance().getTime());
 
         if (mySensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            count++;
             final float x = sensorEvent.values[0];
             final float y = sensorEvent.values[1];
             final float z = sensorEvent.values[2];
 
-            mydb.insertAccelerometer(x, y, z);
+            acc_x += x;
+            acc_y += y;
+            acc_z += z;
 
-            Handler h = new Handler(SensorService.this.getMainLooper());
-            h.post(new Runnable() {
-                @Override
-                public void run() {
-                    // Toast.makeText(SensorService.this, "Acc: " + x + ", " + y + ", " + z, Toast.LENGTH_SHORT).show();
-                }
-            });
+            if (count == 10) {
+                mydb.insertAccelerometer(acc_x/10.0f, acc_y/10.0f, acc_z/10.0f);
+
+                Handler h = new Handler(SensorService.this.getMainLooper());
+                h.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Toast.makeText(SensorService.this, "Acc: " + x + ", " + y + ", " + z, Toast.LENGTH_SHORT).show();
+                    }
+                });
+                stopSelf();
+            }
         }
 //        if(mySensor.getType() == Sensor.TYPE_GYROSCOPE){
 //            final float x = sensorEvent.values[0];
@@ -128,7 +142,7 @@ public class SensorService extends Service implements SensorEventListener {
 //            });
 //        }
 
-        stopSelf();
+
     }
 
     @Override

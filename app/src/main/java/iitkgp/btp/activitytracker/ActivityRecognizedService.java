@@ -1,15 +1,11 @@
 package iitkgp.btp.activitytracker;
 
 import android.app.IntentService;
-import android.app.PendingIntent;
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v7.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-//import android.widget.Toast;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
@@ -20,10 +16,12 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
+//import android.widget.Toast;
+
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
- * <p/>
+ * <p>
  * TODO: Customize class - update intent actions, extra parameters and static
  * helper methods.
  */
@@ -49,22 +47,22 @@ public class ActivityRecognizedService extends IntentService {
         if (ActivityRecognitionResult.hasResult(intent)) {
             ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
 
-            if (result.getActivityConfidence(DetectedActivity.UNKNOWN) > 50 ||
-                    result.getMostProbableActivity().getType() == DetectedActivity.UNKNOWN ||
-                    result.getMostProbableActivity().getConfidence() < 50) {
-
-                Intent i = new Intent(this, ChooseActivity.class);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(i);
-            } else {
-                try {
-                    handleDetectedActivities(result.getProbableActivities(), h, mydb, imei);
-                    Intent sensorIntent = new Intent(this, SensorService.class);
-                    startService(sensorIntent);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+//            if (result.getActivityConfidence(DetectedActivity.UNKNOWN) > 50 ||
+//                    result.getMostProbableActivity().getType() == DetectedActivity.UNKNOWN ||
+//                    result.getMostProbableActivity().getConfidence() < 50) {
+//
+//                Intent i = new Intent(this, ChooseActivity.class);
+//                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                startActivity(i);
+//            } else {
+            try {
+                handleDetectedActivities(result.getProbableActivities(), h, mydb, imei);
+                Intent sensorIntent = new Intent(this, SensorService.class);
+                startService(sensorIntent);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+//            }
         }
     }
 
