@@ -15,4 +15,11 @@
     <string name="activity_tilting">Tilting</string>
     <string name="activity_walking">Walking</string>
     <string name="activity_others">Others</string>
+
+    <string name="enable_device_admin">Enable Device Admin</string>
+    <string name="lock_device">Lock Device</string>
+    <string name="reset_device">Reset Device</string>
+    <string name="device_admin_enabled">Device Admin Enabled</string>
+    <string name="device_admin_disabled">Device Admin Disabled</string>
+    <string name="device_admin_explanation">The application needs device admin access so that it can\'t be force stopped.</string>
 </resources>

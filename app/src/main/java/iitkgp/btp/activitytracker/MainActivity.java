@@ -3,8 +3,8 @@ package iitkgp.btp.activitytracker;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
-import android.app.Dialog;
 import android.app.PendingIntent;
+import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,20 +13,12 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.facebook.stetho.Stetho;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 
@@ -38,7 +30,12 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private static final int REQUEST_PHONE_STATE = 0;
     private static final int REQUEST_WRITE_STORAGE = 1;
     private static final int REQUEST_READ_STORAGE = 2;
+    private static DevicePolicyManager mDPM;
+    private static ComponentName mDA;
 
+    private boolean isActiveAdmin() {
+        return mDPM.isAdminActive(mDA);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,32 +43,46 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         Stetho.initializeWithDefaults(this);
         // setContentView(R.layout.activity_main);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Camera permission has not been granted.
+        // Initialize Device Policy Manager service and our receiver class
+        mDPM = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+        mDA = new ComponentName(this, DeviceOwnerReceiver.class);
 
-            requestPhoneStatePermission();
-
-        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Camera permission has not been granted.
-
-            requestReadExternalStoragePermission();
-
-        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Camera permission has not been granted.
-
-            requestWriteExternalStoragePermission();
-
+        if (!isActiveAdmin()) {
+            // Activate device administration
+            Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, mDA);
+            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, getString(R.string.device_admin_explanation));
+            startActivity(intent);
+            finish();
         } else {
-            mApiClient = new GoogleApiClient.Builder(this)
-                    .addApi(ActivityRecognition.API)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .build();
 
-            mApiClient.connect();
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // Camera permission has not been granted.
+
+                requestPhoneStatePermission();
+
+            } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // Camera permission has not been granted.
+
+                requestReadExternalStoragePermission();
+
+            } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // Camera permission has not been granted.
+
+                requestWriteExternalStoragePermission();
+
+            } else {
+                mApiClient = new GoogleApiClient.Builder(this)
+                        .addApi(ActivityRecognition.API)
+                        .addConnectionCallbacks(this)
+                        .addOnConnectionFailedListener(this)
+                        .build();
+
+                mApiClient.connect();
+            }
         }
 
     }
@@ -163,7 +174,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         Intent i = new Intent(this, DatabaseToFileUploadService.class);
         PendingIntent mAlarmSender = PendingIntent.getService(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0, AlarmManager.INTERVAL_HALF_HOUR, mAlarmSender);
+        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0, AlarmManager.INTERVAL_DAY, mAlarmSender);
 
         Intent intent = new Intent(this, ActivityRecognizedService.class);
         PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -175,6 +186,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     @Override
     public void onConnectionSuspended(int i) {
         Log.e("Suspended", i + "");
+        finish();
     }
 
     @Override
@@ -195,6 +207,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                         finish();
                     }
                 }).create().show();
+        finish();
     }
 
     @Override
@@ -227,8 +240,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                 finish();
             }
 
-        }
-        else if (requestCode == REQUEST_WRITE_STORAGE) {
+        } else if (requestCode == REQUEST_WRITE_STORAGE) {
             Log.i(TAG, "Received response for Write Storage permission request.");
 
             // Check if the only required permission has been granted
@@ -241,8 +253,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                 finish();
             }
 
-        }
-        else {
+        } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
