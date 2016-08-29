@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Activity Tracker</string>
     <string name="action_settings">Settings</string>
-    <string name="server_uri">http://10.50.18.66/~sndas/ActivityData/uploadactivityfile.php</string>
+    <string name="server_uri">http://10.5.18.66/~sndas/ActivityTracker/uploadfile.php</string>
     <!--<string name="server_uri">http://10.5.19.232/ActivityDataLogger/uploadfile.php</string>-->
     <string name="to_be_uploaded_file_path">/ActivityTracker/Pending/</string>
     <string name="archive_file_path">/ActivityTracker/Uploaded/</string>
@@ -22,4 +22,8 @@
     <string name="device_admin_enabled">Device Admin Enabled</string>
     <string name="device_admin_disabled">Device Admin Disabled</string>
     <string name="device_admin_explanation">The application needs device admin access so that it can\'t be force stopped.</string>
+
+    <string name="uploading">Uploaded [[UPLOADED_FILES]] of [[TOTAL_FILES]] at [[UPLOAD_RATE]] - [[PROGRESS]]</string>
+    <string name="upload_success">Upload completed successfully in [[ELAPSED_TIME]]</string>
+    <string name="upload_error">Error while uploading</string>
 </resources>

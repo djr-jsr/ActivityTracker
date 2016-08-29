@@ -1,24 +1,15 @@
 package iitkgp.btp.activitytracker;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.os.Environment;
-import android.telephony.TelephonyManager;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.lang.reflect.Array;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.StringTokenizer;
 import java.util.UUID;
 
 /**
@@ -30,6 +21,8 @@ public class DataWriter {
     private static File newFolder;
     private static File activityfile;
     public static String device;
+    private static final String heading_format = "%20s\t%10s\t%30s\t%20s\t%20s\t%20s\t%20s\t%20s\t%20s\t%20s\t%20s\t%20s\t%20s\t%20s\t%20s\n";
+    private static final String data_format = "%20s\t%10d\t%30s\t%20f\t%20f\t%20f\t%20f\t%20f\t%20f\t%20f\t%20f\t%20f\t%20f\t%20f\t%20f\n";
 
     public DataWriter(String deviceId) {
 
@@ -52,14 +45,14 @@ public class DataWriter {
 
         device = deviceId;
 
-        long ts = (new Date()).getTime() / 1000 / 100;
-        activityfile = new File(toBeUploadedDir, device + "_training_" + ts + "_Activity.txt");
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+        activityfile = new File(toBeUploadedDir, device + "_training_" + date + "_Activity.txt");
 
         try {
             if (!activityfile.exists()) {
                 if (activityfile.createNewFile()) {
                     FileWriter fw = new FileWriter(activityfile, true);
-                    String data = String.format("%20s\t%10s\t%30s\t%20s\t%20s\t%20s\n", "Activities", "Confidence", "Date", "Acceleration X", "Acceleration Y", "Acceleration Z");
+                    String data = String.format(heading_format, "Activities", "Confidence", "Date", "Acc X", "Acc Y", "Acc Z", "SD Acc X", "SD Acc Y", "SD Acc Z", "Lacc X", "Lacc Y", "Lacc Z", "SD Lacc X", "SD Lacc Y", "SD Lacc Z");
                     fw.write(data);
                     fw.flush();
                     fw.close();
@@ -84,11 +77,20 @@ public class DataWriter {
                 String activity = cs.getString(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_ACTIVITY));
                 int confidence = cs.getInt(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_CONFIDENCE));
                 String date = cs.getString(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_TIME));
-                float accx = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_ACCX));
-                float accy = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_ACCY));
-                float accz = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_ACCZ));
+                float accx = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_M_ACCX));
+                float accy = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_M_ACCY));
+                float accz = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_M_ACCZ));
+                float sd_accx = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_SD_ACCX));
+                float sd_accy = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_SD_ACCY));
+                float sd_accz = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_SD_ACCZ));
+                float laccx = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_M_LACCX));
+                float laccy = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_M_LACCY));
+                float laccz = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_M_LACCZ));
+                float sd_laccx = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_SD_LACCX));
+                float sd_laccy = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_SD_LACCY));
+                float sd_laccz = cs.getFloat(cs.getColumnIndex(DBHelper.ACTIVITY_COLUMN_SD_LACCZ));
 
-                String data = String.format(Locale.US, "%20s\t%10d\t%30s\t%20f\t%20f\t%20f\n", activity, confidence, date, accx, accy, accz);
+                String data = String.format(Locale.US, data_format, activity, confidence, date, accx, accy, accz, sd_accx, sd_accy, sd_accz, laccx, laccy, laccz, sd_laccx, sd_laccy, sd_laccz);
                 fw.write(data);
 
                 uid.add(id);

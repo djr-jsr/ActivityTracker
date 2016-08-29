@@ -5,16 +5,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.StringTokenizer;
 import java.util.UUID;
 
 /**
@@ -29,9 +26,19 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String ACTIVITY_COLUMN_IMEI = "imei";
     public static final String ACTIVITY_COLUMN_ACTIVITY = "activity";
     public static final String ACTIVITY_COLUMN_CONFIDENCE = "confidence";
-    public static final String ACTIVITY_COLUMN_ACCX = "acc_x";
-    public static final String ACTIVITY_COLUMN_ACCY = "acc_y";
-    public static final String ACTIVITY_COLUMN_ACCZ = "acc_z";
+    public static final String ACTIVITY_COLUMN_M_ACCX = "m_acc_x";
+    public static final String ACTIVITY_COLUMN_M_ACCY = "m_acc_y";
+    public static final String ACTIVITY_COLUMN_M_ACCZ = "m_acc_z";
+    public static final String ACTIVITY_COLUMN_SD_ACCX = "sd_acc_x";
+    public static final String ACTIVITY_COLUMN_SD_ACCY = "sd_acc_y";
+    public static final String ACTIVITY_COLUMN_SD_ACCZ = "sd_acc_z";
+
+    public static final String ACTIVITY_COLUMN_M_LACCX = "m_lacc_x";
+    public static final String ACTIVITY_COLUMN_M_LACCY = "m_lacc_y";
+    public static final String ACTIVITY_COLUMN_M_LACCZ = "m_lacc_z";
+    public static final String ACTIVITY_COLUMN_SD_LACCX = "sd_lacc_x";
+    public static final String ACTIVITY_COLUMN_SD_LACCY = "sd_lacc_y";
+    public static final String ACTIVITY_COLUMN_SD_LACCZ = "sd_lacc_z";
     public static final String ACTIVITY_COLUMN_TIME = "timestamp";
     public static final String ACTIVITY_COLUMN_UPLOADED = "uploaded";
     private HashMap hp;
@@ -47,9 +54,18 @@ public class DBHelper extends SQLiteOpenHelper {
                 ACTIVITY_COLUMN_IMEI + " VARCHAR," +
                 ACTIVITY_COLUMN_ACTIVITY + " VARCHAR, " +
                 ACTIVITY_COLUMN_CONFIDENCE + " INTEGER, " +
-                ACTIVITY_COLUMN_ACCX + " DOUBLE PRECISION, " +
-                ACTIVITY_COLUMN_ACCY + " DOUBLE PRECISION, " +
-                ACTIVITY_COLUMN_ACCZ + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_M_ACCX + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_M_ACCY + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_M_ACCZ + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_SD_ACCX + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_SD_ACCY + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_SD_ACCZ + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_M_LACCX + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_M_LACCY + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_M_LACCZ + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_SD_LACCX + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_SD_LACCY + " DOUBLE PRECISION, " +
+                ACTIVITY_COLUMN_SD_LACCZ + " DOUBLE PRECISION, " +
                 ACTIVITY_COLUMN_TIME + " VARCHAR, " +
                 ACTIVITY_COLUMN_UPLOADED + " BOOLEAN);");
     }
@@ -60,11 +76,11 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(sqLiteDatabase);
     }
 
-    public boolean insertActivity(String imei, String activity, int confidence) {
+    public boolean insertActivity(String imei, String activity, int confidence, String date) {
         try {
 
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
-            String date = df.format(Calendar.getInstance().getTime());
+//            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
+//            String date = df.format(Calendar.getInstance().getTime());
 
             SQLiteDatabase db = this.getWritableDatabase();
             ContentValues contentValues = new ContentValues();
@@ -83,7 +99,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
-    public boolean insertAccelerometer(float x, float y, float z) {
+    public boolean insertAccelerometer(double mx, double my, double mz, double sdx, double sdy, double sdz) {
         try {
 
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
@@ -91,10 +107,36 @@ public class DBHelper extends SQLiteOpenHelper {
 
             SQLiteDatabase db = this.getWritableDatabase();
             ContentValues contentValues = new ContentValues();
-            contentValues.put(ACTIVITY_COLUMN_ACCX, x);
-            contentValues.put(ACTIVITY_COLUMN_ACCY, y);
-            contentValues.put(ACTIVITY_COLUMN_ACCZ, z);
-            db.update(ACTIVITY_TABLE_NAME, contentValues, ACTIVITY_COLUMN_ACCX + " ISNULL ", null);
+            contentValues.put(ACTIVITY_COLUMN_M_ACCX, mx);
+            contentValues.put(ACTIVITY_COLUMN_M_ACCY, my);
+            contentValues.put(ACTIVITY_COLUMN_M_ACCZ, mz);
+            contentValues.put(ACTIVITY_COLUMN_SD_ACCX, sdx);
+            contentValues.put(ACTIVITY_COLUMN_SD_ACCY, sdy);
+            contentValues.put(ACTIVITY_COLUMN_SD_ACCZ, sdz);
+            db.update(ACTIVITY_TABLE_NAME, contentValues, ACTIVITY_COLUMN_M_ACCX + " ISNULL ", null);
+            db.close();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean insertLinearAccelerometer(double mx, double my, double mz, double sdx, double sdy, double sdz) {
+        try {
+
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
+            String date = df.format(Calendar.getInstance().getTime());
+
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(ACTIVITY_COLUMN_M_LACCX, mx);
+            contentValues.put(ACTIVITY_COLUMN_M_LACCY, my);
+            contentValues.put(ACTIVITY_COLUMN_M_LACCZ, mz);
+            contentValues.put(ACTIVITY_COLUMN_SD_LACCX, sdx);
+            contentValues.put(ACTIVITY_COLUMN_SD_LACCY, sdy);
+            contentValues.put(ACTIVITY_COLUMN_SD_LACCZ, sdz);
+            db.update(ACTIVITY_TABLE_NAME, contentValues, ACTIVITY_COLUMN_M_LACCX + " ISNULL ", null);
             db.close();
             return true;
         } catch (Exception e) {
@@ -106,7 +148,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public void toFile() {
         SQLiteDatabase db = this.getReadableDatabase();
         ArrayList<UUID> arr = new ArrayList<>();
-        try (Cursor cs = db.query(true, ACTIVITY_TABLE_NAME, null, ACTIVITY_COLUMN_UPLOADED + " = 0 AND " + ACTIVITY_COLUMN_ACCX + " NOTNULL ", null, null, null, ACTIVITY_COLUMN_TIME, null)) {
+        try (Cursor cs = db.query(true, ACTIVITY_TABLE_NAME, null, ACTIVITY_COLUMN_UPLOADED + " = 0 AND " + ACTIVITY_COLUMN_M_ACCX + " NOTNULL AND " + ACTIVITY_COLUMN_M_LACCX + " NOTNULL ", null, null, null, ACTIVITY_COLUMN_TIME, null)) {
             if (cs.getCount() > 0) {
                 cs.moveToFirst();
                 String IMEI = cs.getString(cs.getColumnIndex(ACTIVITY_COLUMN_IMEI));

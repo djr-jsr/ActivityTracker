@@ -16,8 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
-//import android.widget.Toast;
-
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
@@ -70,9 +68,11 @@ public class ActivityRecognizedService extends IntentService {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
         String date = df.format(java.util.Calendar.getInstance().getTime());
         for (final DetectedActivity activity : probableActivities) {
+            if (activity.getConfidence() < 30)
+                continue;
             switch (activity.getType()) {
                 case DetectedActivity.IN_VEHICLE: {
-                    Log.e("ActivityRecogition", "In Vehicle: " + activity.getConfidence());
+                    Log.e("ActivityRecognition", "In Vehicle: " + activity.getConfidence());
 
                     h.post(new Runnable() {
                         @Override
@@ -82,11 +82,11 @@ public class ActivityRecognizedService extends IntentService {
                     });
 
 //                        DataWriter.TestWrite("In Vehicle: " + activity.getConfidence() + " " + date, "Activity.txt");
-                    obj.insertActivity(imei, "In Vehicle", activity.getConfidence());
+                    obj.insertActivity(imei, "In Vehicle", activity.getConfidence(), date);
                     break;
                 }
                 case DetectedActivity.ON_BICYCLE: {
-                    Log.e("ActivityRecogition", "On Bicycle: " + activity.getConfidence());
+                    Log.e("ActivityRecognition", "On Bicycle: " + activity.getConfidence());
 
                     h.post(new Runnable() {
                         @Override
@@ -96,11 +96,11 @@ public class ActivityRecognizedService extends IntentService {
                     });
 
 //                        DataWriter.TestWrite("On Bicycle: " + activity.getConfidence() + " " + date, "Activity.txt");
-                    obj.insertActivity(imei, "On Bicycle", activity.getConfidence());
+                    obj.insertActivity(imei, "On Bicycle", activity.getConfidence(), date);
                     break;
                 }
                 case DetectedActivity.ON_FOOT: {
-                    Log.e("ActivityRecogition", "On Foot: " + activity.getConfidence());
+                    Log.e("ActivityRecognition", "On Foot: " + activity.getConfidence());
 
                     h.post(new Runnable() {
                         @Override
@@ -110,11 +110,11 @@ public class ActivityRecognizedService extends IntentService {
                     });
 
 //                        DataWriter.TestWrite("On Foot: " + activity.getConfidence() + " " + date, "Activity.txt");
-                    obj.insertActivity(imei, "On Foot", activity.getConfidence());
+                    obj.insertActivity(imei, "On Foot", activity.getConfidence(), date);
                     break;
                 }
                 case DetectedActivity.RUNNING: {
-                    Log.e("ActivityRecogition", "Running: " + activity.getConfidence());
+                    Log.e("ActivityRecognition", "Running: " + activity.getConfidence());
 
                     h.post(new Runnable() {
                         @Override
@@ -124,11 +124,11 @@ public class ActivityRecognizedService extends IntentService {
                     });
 
 //                        DataWriter.TestWrite("Running: " + activity.getConfidence() + " " + date, "Activity.txt");
-                    obj.insertActivity(imei, "Running", activity.getConfidence());
+                    obj.insertActivity(imei, "Running", activity.getConfidence(), date);
                     break;
                 }
                 case DetectedActivity.STILL: {
-                    Log.e("ActivityRecogition", "Still: " + activity.getConfidence());
+                    Log.e("ActivityRecognition", "Still: " + activity.getConfidence());
 
                     h.post(new Runnable() {
                         @Override
@@ -138,11 +138,11 @@ public class ActivityRecognizedService extends IntentService {
                     });
 
 //                        DataWriter.TestWrite("Still: " + activity.getConfidence() + " " + date, "Activity.txt");
-                    obj.insertActivity(imei, "Still", activity.getConfidence());
+                    obj.insertActivity(imei, "Still", activity.getConfidence(), date);
                     break;
                 }
                 case DetectedActivity.TILTING: {
-                    Log.e("ActivityRecogition", "Tilting: " + activity.getConfidence());
+                    Log.e("ActivityRecognition", "Tilting: " + activity.getConfidence());
 
                     h.post(new Runnable() {
                         @Override
@@ -152,11 +152,11 @@ public class ActivityRecognizedService extends IntentService {
                     });
 
 //                        DataWriter.TestWrite("Tilting: " + activity.getConfidence() + " " + date, "Activity.txt");
-                    obj.insertActivity(imei, "Tilting", activity.getConfidence());
+                    obj.insertActivity(imei, "Tilting", activity.getConfidence(), date);
                     break;
                 }
                 case DetectedActivity.WALKING: {
-                    Log.e("ActivityRecogition", "Walking: " + activity.getConfidence());
+                    Log.e("ActivityRecognition", "Walking: " + activity.getConfidence());
 
                     h.post(new Runnable() {
                         @Override
@@ -166,11 +166,11 @@ public class ActivityRecognizedService extends IntentService {
                     });
 
 //                        DataWriter.TestWrite("Walking: " + activity.getConfidence() + " " + date, "Activity.txt");
-                    obj.insertActivity(imei, "Walking", activity.getConfidence());
+                    obj.insertActivity(imei, "Walking", activity.getConfidence(), date);
                     break;
                 }
                 case DetectedActivity.UNKNOWN: {
-                    Log.e("ActivityRecogition", "Unknown: " + activity.getConfidence());
+                    Log.e("ActivityRecognition", "Unknown: " + activity.getConfidence());
 
                     h.post(new Runnable() {
                         @Override
@@ -180,7 +180,7 @@ public class ActivityRecognizedService extends IntentService {
                     });
 
 //                        DataWriter.TestWrite("Unknown: " + activity.getConfidence() + " " + date, "Activity.txt");
-                    obj.insertActivity(imei, "Unknown", activity.getConfidence());
+                    obj.insertActivity(imei, "Unknown", activity.getConfidence(), date);
                     break;
                 }
             }

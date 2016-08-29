@@ -22,6 +22,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 
+import java.util.Calendar;
+
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     public GoogleApiClient mApiClient;
@@ -171,14 +173,23 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
+        // Set the alarm to start at approximately 4:00 a.m.
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.set(Calendar.HOUR_OF_DAY, 4);
+
         Intent i = new Intent(this, DatabaseToFileUploadService.class);
         PendingIntent mAlarmSender = PendingIntent.getService(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0, AlarmManager.INTERVAL_DAY, mAlarmSender);
+        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0, 60000, mAlarmSender);
 
         Intent intent = new Intent(this, ActivityRecognizedService.class);
         PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mApiClient, 60000, pendingIntent);
+
+        Intent ii = new Intent(this, FileUploadService.class);
+        PendingIntent pi = PendingIntent.getService(this, 0, ii, PendingIntent.FLAG_UPDATE_CURRENT);
+        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
 
         finish();
     }

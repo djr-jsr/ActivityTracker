@@ -1,99 +1,166 @@
 package iitkgp.btp.activitytracker;
 
-import android.app.Service;
+import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.IBinder;
-import android.support.annotation.Nullable;
+import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.util.Log;
+
+import net.gotev.uploadservice.MultipartUploadRequest;
+import net.gotev.uploadservice.ServerResponse;
+import net.gotev.uploadservice.UploadInfo;
+import net.gotev.uploadservice.UploadNotificationConfig;
+import net.gotev.uploadservice.UploadStatusDelegate;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
- * Created by SnigdhaNUP on 5/16/2016.
+ * An {@link IntentService} subclass for handling asynchronous task requests in
+ * a service on a separate handler thread.
+ * <p/>
+ * helper methods.
  */
-public class FileUploadService extends Service {
-    private MyThread myythread;
-    public boolean isRunning = false;
-    long interval;
-    //String upload_interval;
+public class FileUploadService extends IntentService implements UploadStatusDelegate {
 
-    @Override
-    public IBinder onBind(Intent arg0) {
-        return null;
+    final static String TAG = ".FileUploadService";
+
+    public FileUploadService() {
+        super("FileUploadService");
     }
 
     @Override
-    public void onCreate(){
-        //System.out.println("[FileUpload] Service getting started...");
-        //upload_interval = getResources().getString(R.string.upload_interval);
-        interval = 1000 * 60 * 1;
-        //Integer.parseInt(upload_interval);
-        super.onCreate();
-        myythread = new MyThread(interval);
-    }
-
-    @Override
-    public synchronized void onDestroy(){
-        //System.out.println("[FileUpload] Service getting stopped...");
-        isRunning = false;
-        super.onDestroy();
-        if(!isRunning){
-            myythread.interrupt();
-            myythread = null;
+    protected void onHandleIntent(Intent intent) {
+        if (isNetworkAvailable(FileUploadService.this)) {
+            upload(this);
         }
     }
 
-    @Override
-    public synchronized int onStartCommand(Intent intent,int flags, int startId){
-        super.onStartCommand(intent, flags, startId);
-        if(!isRunning){
-            myythread.start();
-            isRunning = true;
-        }
-        //System.out.println("in onstartcommand");
-        return START_STICKY;
+    public boolean isNetworkAvailable(final Context context) {
+        return ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo() != null;
     }
 
-    class MyThread extends Thread{
-        long interval;
-        public MyThread(long interval){
-            this.interval = interval;
-            //System.out.println("MyThread started");
-        }
-        @Override
-        public void run(){
-            while(isRunning){
-                //System.out.println("[FileUpload] Service running");
-                try{
-                    dataUpload();
-                    Thread.sleep(interval);
-                }
-                catch(InterruptedException e){
-                    isRunning = false;
+    @NonNull
+    private UploadNotificationConfig getNotificationConfig() {
+        return new UploadNotificationConfig()
+                .setIcon(R.drawable.ic_upload)
+                .setCompletedIcon(R.drawable.ic_upload_success)
+                .setErrorIcon(R.drawable.ic_upload_error)
+                .setTitle("Activity Tracker")
+                .setInProgressMessage(getString(R.string.uploading))
+                .setCompletedMessage(getString(R.string.upload_success))
+                .setErrorMessage(getString(R.string.upload_error))
+                .setAutoClearOnSuccess(false)
+                .setAutoClearOnError(false)
+                .setClickIntent(null)
+                .setClearOnAction(false)
+                .setRingToneEnabled(true);
+    }
+
+    public boolean upload(final Context context) {
+        File sdCardRoot = Environment.getExternalStorageDirectory();
+        File yourDir = new File(sdCardRoot, this.getApplicationContext().getResources().getString(R.string.to_be_uploaded_file_path));
+
+        MultipartUploadRequest uploadIdReq =
+                new MultipartUploadRequest(context, getString(R.string.server_uri))
+                        .setNotificationConfig(getNotificationConfig())
+                        .setMaxRetries(2);
+        int count_files = 0;
+
+        for (File f : yourDir.listFiles()) {
+            if (f.isFile()) {
+                try {
+                    String filename = f.getName();
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+
+                    Date lastModified = sdf.parse(filename.split("_")[2]);
+                    Date today = sdf.parse(sdf.format(new Date()));
+
+                    if (!today.after(lastModified))
+                        continue;
+
+                    uploadIdReq.addFileToUpload(f.getPath(), "uploaded_file");
+                    count_files++;
+
+                } catch (ParseException | FileNotFoundException e) {
                     e.printStackTrace();
                 }
             }
         }
+        try {
+            if (count_files > 0)
+                uploadIdReq.setDelegate(this).startUpload();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
 
-        public void dataUpload(){
-            if(checkInternetConnection()) {
-                boolean upload_status = new UploadtoFileServer(getApplicationContext()).folderUpload();
-                //System.out.println("upload_status:" + upload_status);
-            }
+    @Override
+    public void onProgress(UploadInfo uploadInfo) {
+
+    }
+
+    @Override
+    public void onError(UploadInfo uploadInfo, Exception e) {
+
+    }
+
+    @Override
+    public void onCompleted(UploadInfo uploadInfo, ServerResponse serverResponse) {
+        for (String i : uploadInfo.getSuccessfullyUploadedFiles()) {
+            Log.e(TAG, uploadInfo.getTotalFiles() + " " + i);
+            File file = new File(i);
+            String strFileName = file.getName();
+            move_file(this, strFileName);
         }
     }
 
-    private boolean checkInternetConnection(){
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo mWifi = connectivityManager.getActiveNetworkInfo();
-        //getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+    @Override
+    public void onCancelled(UploadInfo uploadInfo) {
 
-        if((mWifi != null) && (mWifi.getType()== ConnectivityManager.TYPE_WIFI)){
-            //System.out.println("connection ok");
-            return true;
-        }
-        else{
-            return false;
+    }
+
+    public void move_file(Context context, String file_name) {
+
+        File sdCardRoot = Environment.getExternalStorageDirectory();
+
+        File tobeuploadedDir = new File(sdCardRoot, context.getApplicationContext().getResources().getString(R.string.to_be_uploaded_file_path));
+        File archiveDir = new File(sdCardRoot, context.getApplicationContext().getResources().getString(R.string.archive_file_path));
+
+        File sourceLocation = new File(tobeuploadedDir, file_name);
+        File targetLocation = new File(archiveDir, file_name);
+
+        try {
+            InputStream in = new FileInputStream(sourceLocation);
+            OutputStream out = new FileOutputStream(targetLocation);
+
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+            in.close();
+            out.close();
+
+            //Now delete from ToBeUploaded folder
+            if (sourceLocation.exists()) {
+                sourceLocation.delete();
+            }
+        } catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
         }
     }
 }
