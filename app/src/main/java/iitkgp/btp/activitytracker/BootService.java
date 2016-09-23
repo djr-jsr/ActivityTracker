@@ -15,6 +15,7 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
+import com.splunk.mint.Mint;
 
 import java.util.Calendar;
 
@@ -38,6 +39,7 @@ public class BootService extends Service implements GoogleApiClient.ConnectionCa
 
     @Override
     public void onCreate() {
+        Mint.logEvent("BootService: onCreate");
 
         mDPM = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
         mDA = new ComponentName(this, DeviceOwnerReceiver.class);
@@ -47,7 +49,7 @@ public class BootService extends Service implements GoogleApiClient.ConnectionCa
             // Set the alarm to start at approximately 2:00 p.m.
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(System.currentTimeMillis());
-            calendar.set(Calendar.HOUR_OF_DAY, 4);
+            calendar.set(Calendar.HOUR_OF_DAY, 10);
 
             Intent i = new Intent(this, DatabaseToFileUploadService.class);
             PendingIntent mAlarmSender = PendingIntent.getService(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -56,7 +58,7 @@ public class BootService extends Service implements GoogleApiClient.ConnectionCa
 
             Intent ii = new Intent(this, FileUploadService.class);
             PendingIntent pi = PendingIntent.getService(this, 0, ii, PendingIntent.FLAG_UPDATE_CURRENT);
-            am.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+            am.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_HALF_DAY, pi);
 
             mApiClient = new GoogleApiClient.Builder(this)
                     .addApi(ActivityRecognition.API)

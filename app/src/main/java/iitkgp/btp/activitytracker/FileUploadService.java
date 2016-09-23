@@ -8,6 +8,8 @@ import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.splunk.mint.Mint;
+
 import net.gotev.uploadservice.MultipartUploadRequest;
 import net.gotev.uploadservice.ServerResponse;
 import net.gotev.uploadservice.UploadInfo;
@@ -70,40 +72,51 @@ public class FileUploadService extends IntentService implements UploadStatusDele
     }
 
     public boolean upload(final Context context) {
-        File sdCardRoot = Environment.getExternalStorageDirectory();
-        File yourDir = new File(sdCardRoot, this.getApplicationContext().getResources().getString(R.string.to_be_uploaded_file_path));
+        try {
+            Mint.logEvent("FileUploadService: upload");
 
-        MultipartUploadRequest uploadIdReq =
-                new MultipartUploadRequest(context, getString(R.string.server_uri))
-                        .setNotificationConfig(getNotificationConfig())
-                        .setMaxRetries(2);
-        int count_files = 0;
+            File sdCardRoot = Environment.getExternalStorageDirectory();
+            File yourDir = new File(sdCardRoot, this.getApplicationContext().getResources().getString(R.string.to_be_uploaded_file_path));
 
-        for (File f : yourDir.listFiles()) {
-            if (f.isFile()) {
-                try {
-                    String filename = f.getName();
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            MultipartUploadRequest uploadIdReq =
+                    new MultipartUploadRequest(context, getString(R.string.server_uri))
+                            .setNotificationConfig(getNotificationConfig())
+                            .setMaxRetries(2);
+            int count_files = 0;
 
-                    Date lastModified = sdf.parse(filename.split("_")[2]);
-                    Date today = sdf.parse(sdf.format(new Date()));
+            for (File f : yourDir.listFiles()) {
+                if (f.isFile()) {
+                    try {
+                        String filename = f.getName();
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
-                    if (!today.after(lastModified))
-                        continue;
+                        Date lastModified = sdf.parse(filename.split("_")[2]);
+                        Date today = sdf.parse(sdf.format(new Date()));
 
-                    uploadIdReq.addFileToUpload(f.getPath(), "uploaded_file");
-                    count_files++;
+                        if (!today.after(lastModified))
+                            continue;
 
-                } catch (ParseException | FileNotFoundException e) {
-                    e.printStackTrace();
+                        uploadIdReq.addFileToUpload(f.getPath(), "uploaded_file[]");
+                        count_files++;
+
+                    } catch (ParseException | FileNotFoundException e) {
+                        e.printStackTrace();
+                        Mint.logException(e);
+                    }
                 }
             }
+            try {
+                if (count_files > 0)
+                    uploadIdReq.setDelegate(this).startUpload();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                Mint.logException(e);
+            }
+
         }
-        try {
-            if (count_files > 0)
-                uploadIdReq.setDelegate(this).startUpload();
-        } catch (MalformedURLException e) {
+        catch (Exception e){
             e.printStackTrace();
+            Mint.logException(e);
         }
         return true;
     }
@@ -161,6 +174,7 @@ public class FileUploadService extends IntentService implements UploadStatusDele
             }
         } catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
+            Mint.logException(e);
         }
     }
 }

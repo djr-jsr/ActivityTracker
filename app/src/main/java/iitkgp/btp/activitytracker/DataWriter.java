@@ -3,6 +3,8 @@ package iitkgp.btp.activitytracker;
 import android.database.Cursor;
 import android.os.Environment;
 
+import com.splunk.mint.Mint;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -41,6 +43,7 @@ public class DataWriter {
             }
         } catch (Exception e) {
             System.out.println("creating file error" + e.toString());
+            Mint.logException(e);
         }
 
         device = deviceId;
@@ -61,12 +64,14 @@ public class DataWriter {
         } catch (Exception ex) {
             ex.printStackTrace();
             System.out.println("Fail file");
+            Mint.logException(ex);
         }
 
     }
 
     public ArrayList<UUID> WriteData(Cursor cs) throws IOException {
         try {
+            Mint.logEvent("DataWriter: WriteData");
             FileWriter fw = new FileWriter(activityfile, true);
             ArrayList<UUID> uid = new ArrayList<>();
 
@@ -102,6 +107,7 @@ public class DataWriter {
         } catch (IOException e) {
             cs.close();
             e.printStackTrace();
+            Mint.logException(e);
             throw e;
         }
     }

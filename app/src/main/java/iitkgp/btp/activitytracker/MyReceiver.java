@@ -1,7 +1,5 @@
 package iitkgp.btp.activitytracker;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -23,7 +21,7 @@ public class MyReceiver extends BroadcastReceiver {
                     Intent i = new Intent(context, BootService.class);
                     context.startService(i);
                 } else if (action.equals("android.net.conn.CONNECTIVITY_CHANGE")) {
-                    Toast.makeText(context, "Network Changed", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(context, "Network Changed", Toast.LENGTH_SHORT).show();
                 }
             }
         }

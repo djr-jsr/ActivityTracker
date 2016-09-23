@@ -176,7 +176,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         // Set the alarm to start at approximately 4:00 a.m.
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 4);
+        calendar.set(Calendar.HOUR_OF_DAY, 10);
 
         Intent i = new Intent(this, DatabaseToFileUploadService.class);
         PendingIntent mAlarmSender = PendingIntent.getService(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -189,7 +189,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
         Intent ii = new Intent(this, FileUploadService.class);
         PendingIntent pi = PendingIntent.getService(this, 0, ii, PendingIntent.FLAG_UPDATE_CURRENT);
-        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_HALF_DAY, pi);
 
         finish();
     }

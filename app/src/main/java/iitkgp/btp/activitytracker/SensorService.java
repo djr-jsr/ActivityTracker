@@ -13,6 +13,8 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.splunk.mint.Mint;
+
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
@@ -103,6 +105,7 @@ public class SensorService extends Service implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
+
         Sensor mySensor = sensorEvent.sensor;
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
         String date = df.format(java.util.Calendar.getInstance().getTime());
@@ -138,6 +141,7 @@ public class SensorService extends Service implements SensorEventListener {
                 double sd_acc_y = sd.evaluate(acc_y);
                 double sd_acc_z = sd.evaluate(acc_z);
 
+                Mint.logEvent("SensorService: onSensorChanged: Accelerometer");
                 mydb.insertAccelerometer(m_acc_x, m_acc_y, m_acc_z, sd_acc_x, sd_acc_y, sd_acc_z);
 
                 Handler h = new Handler(SensorService.this.getMainLooper());
@@ -177,6 +181,7 @@ public class SensorService extends Service implements SensorEventListener {
                 double sd_acc_y = sd.evaluate(lacc_y);
                 double sd_acc_z = sd.evaluate(lacc_z);
 
+                Mint.logEvent("SensorService: onSensorChanged: Linear Accelerometer");
                 mydb.insertLinearAccelerometer(m_acc_x, m_acc_y, m_acc_z, sd_acc_x, sd_acc_y, sd_acc_z);
 
                 Handler h = new Handler(SensorService.this.getMainLooper());

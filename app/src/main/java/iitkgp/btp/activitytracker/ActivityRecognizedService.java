@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
+import com.splunk.mint.Mint;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -19,7 +20,7 @@ import java.util.Locale;
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
- * <p>
+ * <p/>
  * TODO: Customize class - update intent actions, extra parameters and static
  * helper methods.
  */
@@ -35,7 +36,9 @@ public class ActivityRecognizedService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        Mint.flush();
         Log.e("ActivityRecognizedSrvc", "onHandleIntent");
+        Mint.logEvent("ActivityRecognizedService: onHandleIntent");
 
         TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         String imei = tm.getDeviceId();
@@ -59,6 +62,7 @@ public class ActivityRecognizedService extends IntentService {
                 startService(sensorIntent);
             } catch (IOException e) {
                 e.printStackTrace();
+                Mint.logException(e);
             }
 //            }
         }

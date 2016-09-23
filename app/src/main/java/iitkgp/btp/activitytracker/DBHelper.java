@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.splunk.mint.Mint;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -95,6 +97,7 @@ public class DBHelper extends SQLiteOpenHelper {
             return true;
         } catch (Exception e) {
             e.printStackTrace();
+            Mint.logException(e);
             return false;
         }
     }
@@ -118,6 +121,7 @@ public class DBHelper extends SQLiteOpenHelper {
             return true;
         } catch (Exception e) {
             e.printStackTrace();
+            Mint.logException(e);
             return false;
         }
     }
@@ -141,6 +145,7 @@ public class DBHelper extends SQLiteOpenHelper {
             return true;
         } catch (Exception e) {
             e.printStackTrace();
+            Mint.logException(e);
             return false;
         }
     }
@@ -157,6 +162,7 @@ public class DBHelper extends SQLiteOpenHelper {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            Mint.logException(e);
         } finally {
             db.close();
         }
@@ -168,6 +174,7 @@ public class DBHelper extends SQLiteOpenHelper {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            Mint.logException(e);
         } finally {
             db.close();
         }
