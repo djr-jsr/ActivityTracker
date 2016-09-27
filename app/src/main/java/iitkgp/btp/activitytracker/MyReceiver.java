@@ -5,6 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
+
+/**
+ * Created by sayan on 5/16/2016.
+ */
 public class MyReceiver extends BroadcastReceiver {
     public MyReceiver() {
     }

@@ -22,6 +22,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+/**
+ * Created by sayan on 5/16/2016.
+ */
 public class SensorService extends Service implements SensorEventListener {
     private SensorManager senSensorManager;
     private Sensor senAccelerometer;
