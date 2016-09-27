@@ -128,7 +128,7 @@ public class SensorService extends Service implements SensorEventListener {
                 acc_z[acc_count] = z;
             }
 
-            if (acc_count <= 0) {
+            if (acc_count <= 0 && !acc_stop) {
 
                 StandardDeviation sd = new StandardDeviation();
                 Mean m = new Mean();
@@ -168,7 +168,7 @@ public class SensorService extends Service implements SensorEventListener {
                 lacc_z[lacc_count] = z;
             }
 
-            if (lacc_count <= 0) {
+            if (lacc_count <= 0 && !lacc_stop) {
 
                 StandardDeviation sd = new StandardDeviation();
                 Mean m = new Mean();

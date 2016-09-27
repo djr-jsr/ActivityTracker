@@ -6,6 +6,7 @@ import android.os.Environment;
 import com.splunk.mint.Mint;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -31,18 +32,24 @@ public class DataWriter {
         try {
             newFolder = new File(Environment.getExternalStorageDirectory(), "ActivityTracker");
             if (!newFolder.exists()) {
-                newFolder.mkdir();
+                if (!newFolder.mkdirs()) {
+                    throw new FileNotFoundException("ActivityTracker");
+                }
             }
             toBeUploadedDir = new File(newFolder, "Pending");
             if (!toBeUploadedDir.exists()) {
-                toBeUploadedDir.mkdir();
+                if (!toBeUploadedDir.mkdirs()) {
+                    throw new FileNotFoundException("Pending");
+                }
             }
             archiveDir = new File(newFolder, "Uploaded");
             if (!archiveDir.exists()) {
-                archiveDir.mkdir();
+                if (!archiveDir.mkdirs()) {
+                    throw new FileNotFoundException("Uploaded");
+                }
             }
         } catch (Exception e) {
-            System.out.println("creating file error" + e.toString());
+            e.printStackTrace();
             Mint.logException(e);
         }
 
@@ -63,7 +70,6 @@ public class DataWriter {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-            System.out.println("Fail file");
             Mint.logException(ex);
         }
 
